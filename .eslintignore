@@ -1,2 +1,5 @@
 helix-importer-ui
 *.min.js
+blocks/form/rules/formula/index.js
+blocks/form/rules/functions.js
+blocks/form/rules/model/afb-*.js

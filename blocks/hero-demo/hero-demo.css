@@ -53,14 +53,14 @@
 }
 
 /* Tablet */
-@media (max-width: 900px) {
+@media (width <= 900px) {
   .hero-demo > div {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
 /* Mobile */
-@media (max-width: 600px) {
+@media (width <= 600px) {
   .hero-demo {
     margin: 32px 16px;
   }
