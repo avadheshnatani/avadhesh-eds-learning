@@ -4,7 +4,6 @@
  * https://www.aem.live/developer/block-collection/fragment
  */
 
-// eslint-disable-next-line import/no-cycle
 import {
   decorateMain,
 } from '../../scripts/scripts.js';
@@ -18,14 +17,23 @@ import {
  * @param {string} path The path to the fragment
  * @returns {HTMLElement} The root element of the fragment
  */
+
+// Create a policy to sanitize or pass-through HTML
+const policy = window.trustedTypes?.createPolicy('default', {
+  createHTML: (html) => html, // In production, consider using a library like DOMPurify here
+});
+
 export async function loadFragment(path) {
-  if (path && path.startsWith('/') && !path.startsWith('//')) {
+  if (path && path.startsWith('/')) {
+    path = path.replace(/(\.plain)?\.html/, '');
     const resp = await fetch(`${path}.plain.html`);
     if (resp.ok) {
       const main = document.createElement('main');
-      main.innerHTML = await resp.text();
+      const htmlText = await resp.text();
+      
+      // Use the policy to convert the string to TrustedHTML
+      main.innerHTML = policy ? policy.createHTML(htmlText) : htmlText;
 
-      // reset base path for media to fragment base
       const resetAttributeBase = (tag, attr) => {
         main.querySelectorAll(`${tag}[${attr}^="./media_"]`).forEach((elem) => {
           elem[attr] = new URL(elem.getAttribute(attr), new URL(path, window.location)).href;
@@ -46,19 +54,12 @@ export default async function decorate(block) {
   const link = block.querySelector('a');
   const path = link ? link.getAttribute('href') : block.textContent.trim();
   const fragment = await loadFragment(path);
-  if (!fragment) return;
-
-  const wrapper = block.closest('.fragment-wrapper');
-  const section = wrapper.closest('.section');
-
-  if (section && section.children.length === 1) {
-    // fragment is the ONLY child of its section; replace the whole section
-    section.replaceWith(...fragment.childNodes);
-  } else {
-    // fragment shares section with other children; flatten children into it
-    fragment.querySelectorAll(':scope > .section').forEach((fragSection) => {
-      [...fragSection.childNodes].forEach((child) => wrapper.before(child));
-    });
-    wrapper.remove();
+  if (fragment) {
+    const fragmentSection = fragment.querySelector(':scope .section');
+    if (fragmentSection) {
+      block.classList.add(...fragmentSection.classList);
+      block.classList.remove('section');
+      block.replaceChildren(...fragmentSection.childNodes);
+    }
   }
 }
