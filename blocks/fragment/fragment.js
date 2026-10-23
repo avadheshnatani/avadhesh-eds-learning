@@ -25,18 +25,19 @@ const policy = window.trustedTypes?.createPolicy('default', {
 
 export async function loadFragment(path) {
   if (path && path.startsWith('/')) {
-    path = path.replace(/(\.plain)?\.html/, '');
-    const resp = await fetch(`${path}.plain.html`);
+    const fragmentPath = path.replace(/(\.plain)?\.html/, '');
+    const resp = await fetch(`${fragmentPath}.plain.html`);
     if (resp.ok) {
       const main = document.createElement('main');
       const htmlText = await resp.text();
-      
+
       // Use the policy to convert the string to TrustedHTML
       main.innerHTML = policy ? policy.createHTML(htmlText) : htmlText;
 
       const resetAttributeBase = (tag, attr) => {
         main.querySelectorAll(`${tag}[${attr}^="./media_"]`).forEach((elem) => {
-          elem[attr] = new URL(elem.getAttribute(attr), new URL(path, window.location)).href;
+          const base = new URL(fragmentPath, window.location);
+          elem[attr] = new URL(elem.getAttribute(attr), base).href;
         });
       };
       resetAttributeBase('img', 'src');
