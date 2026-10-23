@@ -573,6 +573,7 @@ function decorateBlocks(main) {
  */
 async function loadHeader(header) {
   const headerBlock = buildBlock('header', '');
+  console.log('Decorating header block', headerBlock);
   const existingHeaderBlock = header.querySelector(':scope > .header');
   if (existingHeaderBlock) {
     existingHeaderBlock.replaceWith(headerBlock);
@@ -580,6 +581,8 @@ async function loadHeader(header) {
     header.append(headerBlock);
   }
   decorateBlock(headerBlock);
+  console.log('Loading header block', headerBlock);
+
   return loadBlock(headerBlock);
 }
 
